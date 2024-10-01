@@ -174,9 +174,10 @@ if SOCKETIO_AVAILABLE:
     def draw_line(data):
         x = data['x'] * whiteboard.canvas.winfo_width()
         y = data['y'] * whiteboard.canvas.winfo_height()
-        whiteboard.canvas.create_line(whiteboard.old_x, whiteboard.old_y, x, y,
-                                      width=whiteboard.line_width, fill=whiteboard.color,
-                                      capstyle=tk.ROUND, smooth=tk.TRUE)
+        if whiteboard.old_x is not None and whiteboard.old_y is not None:
+            whiteboard.canvas.create_line(whiteboard.old_x, whiteboard.old_y, x, y,
+                                          width=whiteboard.line_width, fill=whiteboard.color,
+                                          capstyle=tk.ROUND, smooth=tk.TRUE)
         whiteboard.old_x = x
         whiteboard.old_y = y
 
