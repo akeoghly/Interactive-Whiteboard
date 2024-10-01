@@ -9,31 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let clientColor = '#000000';
 
     // Set canvas size
-    canvas.width = 800;
-    canvas.height = 600;
-
-    // Function to get the local IP address
-    function getLocalIP(callback) {
-        const pc = new RTCPeerConnection({ iceServers: [] });
-        pc.createDataChannel('');
-        pc.createOffer().then(offer => pc.setLocalDescription(offer));
-        pc.onicecandidate = (ice) => {
-            if (!ice || !ice.candidate || !ice.candidate.candidate) return;
-            const localIP = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)[1];
-            pc.onicecandidate = null;
-            callback(localIP);
-        };
+    function resizeCanvas() {
+        canvas.width = window.innerWidth * 0.8;
+        canvas.height = window.innerHeight * 0.8;
     }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
-    // Generate QR Code
-    getLocalIP((ip) => {
-        const qrCodeText = `http://${ip}:3000`;
-        new QRCode(document.getElementById("qrcode"), {
-            text: qrCodeText,
-            width: 128,
-            height: 128
-        });
-    });
 
     socket.on('setColor', (color) => {
         clientColor = color;
@@ -53,8 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isDrawing) return;
 
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        let x, y;
+
+        if (e.type === 'mousemove') {
+            x = e.clientX - rect.left;
+            y = e.clientY - rect.top;
+        } else if (e.type === 'touchmove') {
+            x = e.touches[0].clientX - rect.left;
+            y = e.touches[0].clientY - rect.top;
+        }
 
         ctx.lineWidth = brushSize.value;
         ctx.lineCap = 'round';
@@ -65,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.beginPath();
         ctx.moveTo(x, y);
 
-        socket.emit('draw', { x, y, brushSize: brushSize.value });
+        socket.emit('draw', { x, y, brushSize: brushSize.value, color: clientColor });
     }
 
     function clearCanvas() {
@@ -90,6 +79,9 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.addEventListener('mousemove', draw);
     canvas.addEventListener('mouseup', stopDrawing);
     canvas.addEventListener('mouseout', stopDrawing);
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
 
     clearBtn.addEventListener('click', clearCanvas);
 });
