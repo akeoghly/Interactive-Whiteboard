@@ -2,8 +2,15 @@ import tkinter as tk
 from tkinter import colorchooser
 import threading
 from flask import Flask, render_template_string
-from flask_socketio import SocketIO
 import socket
+
+try:
+    from flask_socketio import SocketIO
+    SOCKETIO_AVAILABLE = True
+except ImportError:
+    SOCKETIO_AVAILABLE = False
+    print("SocketIO functionality is not available. To enable it, please install the required package.")
+    print("Run: pip install flask-socketio")
 
 try:
     import qrcode
@@ -89,7 +96,11 @@ class Whiteboard:
         threading.Thread(target=self.run_flask, daemon=True).start()
 
     def run_flask(self):
-        socketio.run(app, host='0.0.0.0', port=5000)
+        if SOCKETIO_AVAILABLE:
+            socketio.run(app, host='0.0.0.0', port=5000)
+        else:
+            print("SocketIO is not available. Running Flask without real-time functionality.")
+            app.run(host='0.0.0.0', port=5000)
 
 @app.route('/')
 def index():
@@ -141,25 +152,26 @@ def index():
     </html>
     ''')
 
-@socketio.on('start_line')
-def start_line(data):
-    whiteboard.old_x = data['x'] * whiteboard.canvas.winfo_width()
-    whiteboard.old_y = data['y'] * whiteboard.canvas.winfo_height()
+if SOCKETIO_AVAILABLE:
+    @socketio.on('start_line')
+    def start_line(data):
+        whiteboard.old_x = data['x'] * whiteboard.canvas.winfo_width()
+        whiteboard.old_y = data['y'] * whiteboard.canvas.winfo_height()
 
-@socketio.on('draw_line')
-def draw_line(data):
-    x = data['x'] * whiteboard.canvas.winfo_width()
-    y = data['y'] * whiteboard.canvas.winfo_height()
-    whiteboard.canvas.create_line(whiteboard.old_x, whiteboard.old_y, x, y,
-                                  width=whiteboard.line_width, fill=whiteboard.color,
-                                  capstyle=tk.ROUND, smooth=tk.TRUE)
-    whiteboard.old_x = x
-    whiteboard.old_y = y
+    @socketio.on('draw_line')
+    def draw_line(data):
+        x = data['x'] * whiteboard.canvas.winfo_width()
+        y = data['y'] * whiteboard.canvas.winfo_height()
+        whiteboard.canvas.create_line(whiteboard.old_x, whiteboard.old_y, x, y,
+                                      width=whiteboard.line_width, fill=whiteboard.color,
+                                      capstyle=tk.ROUND, smooth=tk.TRUE)
+        whiteboard.old_x = x
+        whiteboard.old_y = y
 
-@socketio.on('end_line')
-def end_line():
-    whiteboard.old_x = None
-    whiteboard.old_y = None
+    @socketio.on('end_line')
+    def end_line():
+        whiteboard.old_x = None
+        whiteboard.old_y = None
 
 if __name__ == "__main__":
     root = tk.Tk()
