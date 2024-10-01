@@ -13,12 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function startDrawing(e) {
         isDrawing = true;
-        draw(e);
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
     }
 
     function stopDrawing() {
         isDrawing = false;
-        ctx.beginPath();
     }
 
     function draw(e) {
@@ -30,8 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ctx.lineTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
         ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(e.clientX - canvas.offsetLeft, e.clientY - canvas.offsetTop);
     }
 
     function clearCanvas() {
