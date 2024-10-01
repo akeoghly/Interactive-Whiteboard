@@ -10,6 +10,7 @@ const io = socketIo(server);
 app.use(express.static(path.join(__dirname, '.')));
 
 const PORT = process.env.PORT || 3000;
+const IP = '0.0.0.0';  // Listen on all network interfaces
 
 let connectedClients = 0;
 const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
@@ -29,6 +30,6 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+server.listen(PORT, IP, () => {
+    console.log(`Server running on http://${IP}:${PORT}`);
 });

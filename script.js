@@ -12,11 +12,27 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.width = 800;
     canvas.height = 600;
 
+    // Function to get the local IP address
+    function getLocalIP(callback) {
+        const pc = new RTCPeerConnection({ iceServers: [] });
+        pc.createDataChannel('');
+        pc.createOffer().then(offer => pc.setLocalDescription(offer));
+        pc.onicecandidate = (ice) => {
+            if (!ice || !ice.candidate || !ice.candidate.candidate) return;
+            const localIP = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)[1];
+            pc.onicecandidate = null;
+            callback(localIP);
+        };
+    }
+
     // Generate QR Code
-    const qrcode = new QRCode(document.getElementById("qrcode"), {
-        text: window.location.href,
-        width: 128,
-        height: 128
+    getLocalIP((ip) => {
+        const qrCodeText = `http://${ip}:3000`;
+        new QRCode(document.getElementById("qrcode"), {
+            text: qrCodeText,
+            width: 128,
+            height: 128
+        });
     });
 
     socket.on('setColor', (color) => {
