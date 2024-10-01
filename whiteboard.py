@@ -78,7 +78,7 @@ class Whiteboard:
 
     def setup_qr_code(self):
         if QR_AVAILABLE:
-            local_ip = socket.gethostbyname(socket.gethostname())
+            local_ip = self.get_local_ip()
             url = f"http://{local_ip}:5001"
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(url)
@@ -94,6 +94,18 @@ class Whiteboard:
             qr_label.pack(side=tk.BOTTOM)
 
         threading.Thread(target=self.run_flask, daemon=True).start()
+
+    def get_local_ip(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
 
     def run_flask(self):
         if SOCKETIO_AVAILABLE:
