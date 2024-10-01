@@ -79,7 +79,7 @@ class Whiteboard:
     def setup_qr_code(self):
         if QR_AVAILABLE:
             local_ip = socket.gethostbyname(socket.gethostname())
-            url = f"http://{local_ip}:5000"
+            url = f"http://{local_ip}:5001"
             qr = qrcode.QRCode(version=1, box_size=10, border=5)
             qr.add_data(url)
             qr.make(fit=True)
@@ -97,10 +97,10 @@ class Whiteboard:
 
     def run_flask(self):
         if SOCKETIO_AVAILABLE:
-            socketio.run(app, host='0.0.0.0', port=5000)
+            socketio.run(app, host='0.0.0.0', port=5001)
         else:
             print("SocketIO is not available. Running Flask without real-time functionality.")
-            app.run(host='0.0.0.0', port=5000)
+            app.run(host='0.0.0.0', port=5001)
 
 @app.route('/')
 def index():
