@@ -1,11 +1,18 @@
 import tkinter as tk
 from tkinter import colorchooser
-import qrcode
-from PIL import Image, ImageTk
 import threading
 from flask import Flask, render_template_string
 from flask_socketio import SocketIO
 import socket
+
+try:
+    import qrcode
+    from PIL import Image, ImageTk
+    QR_AVAILABLE = True
+except ImportError:
+    QR_AVAILABLE = False
+    print("QR code functionality is not available. To enable it, please install the required packages.")
+    print("Run: pip install qrcode[pil] flask flask-socketio")
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -63,17 +70,21 @@ class Whiteboard:
         self.canvas.delete("all")
 
     def setup_qr_code(self):
-        local_ip = socket.gethostbyname(socket.gethostname())
-        url = f"http://{local_ip}:5000"
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(url)
-        qr.make(fit=True)
-        qr_image = qr.make_image(fill_color="black", back_color="white")
-        qr_image = qr_image.resize((150, 150), Image.ANTIALIAS)
-        self.qr_photo = ImageTk.PhotoImage(qr_image)
-        
-        qr_label = tk.Label(self.master, image=self.qr_photo)
-        qr_label.pack(side=tk.BOTTOM)
+        if QR_AVAILABLE:
+            local_ip = socket.gethostbyname(socket.gethostname())
+            url = f"http://{local_ip}:5000"
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(url)
+            qr.make(fit=True)
+            qr_image = qr.make_image(fill_color="black", back_color="white")
+            qr_image = qr_image.resize((150, 150), Image.LANCZOS)
+            self.qr_photo = ImageTk.PhotoImage(qr_image)
+            
+            qr_label = tk.Label(self.master, image=self.qr_photo)
+            qr_label.pack(side=tk.BOTTOM)
+        else:
+            qr_label = tk.Label(self.master, text="QR Code not available\nInstall required packages to enable")
+            qr_label.pack(side=tk.BOTTOM)
 
         threading.Thread(target=self.run_flask, daemon=True).start()
 
