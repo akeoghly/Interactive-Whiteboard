@@ -25,6 +25,10 @@ h1 {
     background-color: white;
 }
 
-#colorPicker, #brushSize, #clearBtn {
+#brushSize, #clearBtn {
     margin: 0 5px;
+}
+
+#qrcode {
+    margin-top: 20px;
 }
