@@ -4,9 +4,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = canvas.getContext('2d');
     const brushSize = document.getElementById('brushSize');
     const clearBtn = document.getElementById('clearBtn');
+    const qrcodeElement = document.getElementById('qrcode');
 
     let isDrawing = false;
     let clientColor = '#000000';
+
+    // Generate QR code
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    const url = `${protocol}//${hostname}${port ? ':' + port : ''}`;
+    new QRCode(qrcodeElement, {
+        text: url,
+        width: 128,
+        height: 128
+    });
+
+    // Request a color from the server
+    socket.emit('requestColor');
 
     // Set canvas size
     function resizeCanvas() {
@@ -19,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('setColor', (color) => {
         clientColor = color;
+        console.log('Assigned color:', clientColor);
     });
 
     function startDrawing(e) {
